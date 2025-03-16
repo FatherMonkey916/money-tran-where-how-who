@@ -16,7 +16,7 @@ import { axiosInstance } from '@/lib/axios';
 export default function SignIn() {
   const router = useRouter();
   const { toast } = useToast();
-  const { setToken } = useAuth();
+  const { setToken, setId } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -25,7 +25,7 @@ export default function SignIn() {
   const [errors, setErrors] = useState({
     email: '',
     password: ''
-  });
+  });  
 
   const validateForm = () => {
     const newErrors = {
@@ -62,7 +62,7 @@ export default function SignIn() {
 
       if (res.status === 200) {
         setToken(res.data.token);
-        
+        setId(res.data.id);
         toast({
           title: 'Success!',
           description: 'You have successfully signed in.'

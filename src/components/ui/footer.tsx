@@ -10,6 +10,7 @@ import {
   Github,
   Mail,
 } from "lucide-react";
+import Link from "next/link";
 
 export function Footer() {
   const handleSubscribe = (e: React.FormEvent) => {
@@ -28,36 +29,29 @@ export function Footer() {
               technology and AI assistance.
             </p>
             <div className="flex space-x-4">
-              <a
-                href="#"
-                className="text-muted-foreground hover:text-primary transition-colors"
+              <Link href="#"className="text-muted-foreground hover:text-primary transition-colors"
               >
                 <Facebook className="h-5 w-5" />
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link href="#"
                 className="text-muted-foreground hover:text-primary transition-colors"
               >
                 <Twitter className="h-5 w-5" />
-              </a>
-              <a
-                href="#"
-                className="text-muted-foreground hover:text-primary transition-colors"
+              </Link>
+              <Link href="#"className="text-muted-foreground hover:text-primary transition-colors"
               >
                 <Instagram className="h-5 w-5" />
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link href="#"
                 className="text-muted-foreground hover:text-primary transition-colors"
               >
                 <Linkedin className="h-5 w-5" />
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link href="#"
                 className="text-muted-foreground hover:text-primary transition-colors"
               >
                 <Github className="h-5 w-5" />
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -65,36 +59,36 @@ export function Footer() {
             <h3 className="text-lg font-semibold mb-4">Product</h3>
             <ul className="space-y-2">
               <li>
-                <a
+                <Link
                   href="/features"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   Features
-                </a>
+                </Link>
               </li>
               <li>
-                <a
+                <Link
                   href="/pricing"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   Pricing
-                </a>
+                </Link>
               </li>
               <li>
-                <a
+                <Link
                   href="/security"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   Security
-                </a>
+                </Link>
               </li>
               <li>
-                <a
+                <Link
                   href="/roadmap"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   Roadmap
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -103,36 +97,36 @@ export function Footer() {
             <h3 className="text-lg font-semibold mb-4">Company</h3>
             <ul className="space-y-2">
               <li>
-                <a
+                <Link
                   href="/about"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   About Us
-                </a>
+                </Link>
               </li>
               <li>
-                <a
+                <Link
                   href="/careers"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   Careers
-                </a>
+                </Link>
               </li>
               <li>
-                <a
+                <Link
                   href="/blog"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   Blog
-                </a>
+                </Link>
               </li>
               <li>
-                <a
+                <Link
                   href="/contact"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   Contact
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -163,24 +157,24 @@ export function Footer() {
               © {new Date().getFullYear()} FOCO.chat. All rights reserved.
             </p>
             <div className="flex gap-4">
-              <a
+              <Link
                 href="/privacy"
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 Privacy Policy
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/terms"
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 Terms of Service
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/cookies"
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 Cookie Policy
-              </a>
+              </Link>
             </div>
           </div>
         </div>
