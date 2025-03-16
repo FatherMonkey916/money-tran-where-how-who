@@ -6,14 +6,18 @@ import { setCookie, deleteCookie } from "cookies-next";
 
 interface AuthContextType {
   token: string | null;
+  id: string | null;
   setToken: (token: string | null) => void;
+  setId: (id: string | null) => void;
   isAuthenticated: boolean;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
   token: null,
-  setToken: () => {},
+  id:null,
+  setToken: () => { },
+  setId: () => { },
   isAuthenticated: false,
   logout: () => {},
 });
@@ -22,6 +26,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setTokenState] = useState<string | null>(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("auth_token");
+    }
+    return null;
+  });
+  const [id, setIdState] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("id");
     }
     return null;
   });
@@ -37,6 +47,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const setId = (newId: string | null) => {
+    setIdState(newId);
+    if (newId) {
+      localStorage.setItem("id", newId);
+    } else {
+      localStorage.removeItem("id");
+      deleteCookie("id");
+    }
+  };
+
   useEffect(() => {
     if (token) {
       localStorage.setItem("auth_token", token);
@@ -45,7 +65,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem("auth_token");
       deleteCookie("auth_token");
     }
-  }, [token]);
+    if (id) {
+      localStorage.setItem("id", id);
+      setCookie("id", id);
+    } else {
+      localStorage.removeItem("id");
+      deleteCookie("id");
+    }
+  }, [token, id]);
 
   const isAuthenticated = !!token;
 
@@ -59,6 +86,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = {
     token,
     setToken,
+    id,
+    setId,
     isAuthenticated,
     logout,
   };

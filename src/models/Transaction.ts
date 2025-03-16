@@ -9,7 +9,7 @@ export interface ITransaction extends Document {
 }
 const TransactionSchema: Schema<ITransaction> = new Schema({
   type: { type: String, enum: ['onramp', 'offramp', 'transfer'], required: true },
-  from: { type: String, required: true },
+  from: { type: String, required: true, ref:'user' },
   to: { type: String, required: true },
   amount: { type: Number, required: true },
   date: { type: Date, default: Date.now }
