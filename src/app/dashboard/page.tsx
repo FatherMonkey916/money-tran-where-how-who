@@ -128,7 +128,7 @@ export default function Dashboard() {
                         {transaction.type === "onramp" ||
                         transaction.to._id == id
                           ? `From ${transaction.from.name}`
-                          : `To ${transaction.to._id}`}
+                          : `To ${transaction.to.name}`}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {new Date(transaction.date).toLocaleDateString()}
