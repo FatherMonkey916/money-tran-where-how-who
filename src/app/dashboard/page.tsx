@@ -44,6 +44,7 @@ export default function Dashboard() {
     };
     fetchData();
   }, [id, transactions.length]);
+ 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -112,6 +113,7 @@ export default function Dashboard() {
             <h3 className="text-xl font-semibold mb-4">Recent Transactions</h3>
             <div className="space-y-4">
               {transactions.map((transaction) => (
+                (transaction.from._id == id || transaction.to._id == id) && (
                 <div
                   key={transaction._id}
                   className="flex items-center justify-between p-3 bg-secondary rounded-lg"
@@ -147,7 +149,8 @@ export default function Dashboard() {
                       : "-"}
                     ${transaction.amount}
                   </p>
-                </div>
+                  </div>
+                )
               ))}
             </div>
           </Card>
