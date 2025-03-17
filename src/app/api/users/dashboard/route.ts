@@ -19,23 +19,53 @@ export async function POST(req: Request) {
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
-    const balance = user.balance; // Adjust according to your User model
+
     // Fetch the latest 10 transactions for the user
-    const transactions = await TransactionModel.find({
-      $or: [{ from: userId }, { to: userId }],
-    }) // Assuming transactions are linked to a user
-      .sort({ date: -1 }) // Sort by date descending
-      .limit(10)
-      .lean(); // Use lean for better performance
+    const transactions = await TransactionModel.find({})
+      .populate("from", "name email") // Populate from field with user name and email
+      .populate("to", "name email") // Populate to field with user name and email
+      .sort({ date: -1 })
+      .lean();
+
     // Get total number of transactions
-    const totalTransactions = await TransactionModel.countDocuments({
-      userId,
-    });
+    const transactionCount = transactions.length;
+
+    let balance = 0;
+
+    for (const transaction of transactions) {
+      if (transaction.type === "onramp") {
+        // User is receiving money from external source
+        if (transaction.to._id.toString() === userId.toString()) {
+          balance += transaction.amount;
+        }
+      } else if (transaction.type === "offramp") {
+        // User is sending money to external source
+        if (transaction.from._id.toString() === userId.toString()) {
+          balance -= transaction.amount;
+        }
+      } else if (transaction.type === "transfer") {
+        // Internal transfer between users
+        if (transaction.to._id.toString() === userId.toString()) {
+          // User received money
+          balance += transaction.amount;
+        }
+        if (transaction.from._id.toString() === userId.toString()) {
+          // User sent money
+          balance -= transaction.amount;
+        }
+      }
+    }
+
+    const recentTransactions = transactions.slice(0, 10);
+
+    console.log("Balance:", balance);
+    console.log("Transactions:", transactions);
+    console.log("Total Transaction Count:", transactionCount);
     // Return the response with balance, transactions, and total transactions
     return NextResponse.json({
       balance,
-      transactions,
-      totalTransactions,
+      transactionCount,
+      recentTransactions,
     });
   } catch (error) {
     console.error("Error fetching dashboard data:", error);
