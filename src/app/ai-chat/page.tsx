@@ -52,19 +52,27 @@ export default function AIChat() {
     {
       id: 1,
       type: "bot",
-      content: `WELCOME!
-  
-  I'm your AI Assistant, Here to help you send money easily.
-  
-  We offer three simple methods for sending money:
-  
-  **1. MOBILE WALLET** – Send money directly to mobile wallet.
-  
-  **2. BANK TRANSFER / CARD** – Transfer funds using Ramp, Transak, or MoonPay.
-  
-  **3. CASH DEPOSIT AT AGENT** – Send money through MoneyGram or local partners.
-  
-  Which method would you like to use?`,
+      content: `Hello!
+
+Welcome to Foco, your seamless way to send and receive money.
+
+With Foco, you can easily use various payment methods like PayPal, Stripe, and MTN to send funds.
+
+Recipients can also choose anyone from multiple payment options to receive money. 
+
+The best part?
+
+....
+
+**You can do all this without any fees!**
+
+....
+
+How can I assist you today with Foco?
+
+Whether you need help sending money, or receiving money what someone sent you and then also tracking a transaction, or have questions about our services, I'm here to help.
+
+Let's get started!`,
       timestamp: new Date(),
     },
   ]);
