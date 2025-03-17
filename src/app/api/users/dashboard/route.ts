@@ -30,7 +30,12 @@ export async function POST(req: Request) {
       .lean();
 
     // Get total number of transactions
-    const transactionCount = transactions.length;
+    let transactionCount = 0;
+    for (const transaction of transactions) {
+      if (transaction.to._id.toString() === userId.toString() || transaction.from._id.toString() === userId.toString()) {
+        transactionCount++;
+      }
+    }
 
     let balance = 0;
 
