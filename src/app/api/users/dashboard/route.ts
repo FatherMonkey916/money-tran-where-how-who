@@ -2,6 +2,7 @@ import clientPromise from "@/lib/mongodb"; // Ensure this is correctly set up
 import TransactionModel from "@/models/Transaction";
 import UserModel from "@/models/User"; // Assuming you have a User model
 import { NextResponse } from "next/server";
+
 export async function POST(req: Request) {
   await clientPromise; // Ensure the database is connected
 
@@ -20,10 +21,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Fetch the latest 10 transactions for the user
-    const transactions = await TransactionModel.find({})
-      .populate("from", "name email") // Populate from field with user name and email
-      .populate("to", "name email") // Populate to field with user name and email
+    const transactions = await TransactionModel.find({
+      // $or: [{ "from": userId }, { "to": userId }],
+    })
+      .populate("from", "name email")
+      .populate("to", "name email")
       .sort({ date: -1 })
       .lean();
 
@@ -58,9 +60,9 @@ export async function POST(req: Request) {
 
     const recentTransactions = transactions.slice(0, 10);
 
-    console.log("Balance:", balance);
-    console.log("Transactions:", transactions);
-    console.log("Total Transaction Count:", transactionCount);
+    // console.log("Balance:", balance);
+    // console.log("Transactions:", transactions);
+    // console.log("Transaction Count:", transactionCount);
     // Return the response with balance, transactions, and total transactions
     return NextResponse.json({
       balance,
