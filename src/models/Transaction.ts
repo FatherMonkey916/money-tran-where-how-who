@@ -1,7 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
-
 export type TransactionType = 'onramp' | 'offramp' | 'transfer';
-
 export interface ITransaction extends Document {
   type: TransactionType;
   from: string;
@@ -9,13 +7,12 @@ export interface ITransaction extends Document {
   amount: number;
   date: Date;
 }
-
 const TransactionSchema: Schema<ITransaction> = new Schema({
   type: { type: String, enum: ['onramp', 'offramp', 'transfer'], required: true },
-  from: { type: String, required: true },
+  from: { type: String, required: true, ref:'user' },
   to: { type: String, required: true },
   amount: { type: Number, required: true },
   date: { type: Date, default: Date.now }
 });
-
-export default mongoose.models.Transaction || mongoose.model<ITransaction>('Transaction', TransactionSchema);
+const TransactionModel = mongoose.models.Transaction || mongoose.model<ITransaction>('Transaction', TransactionSchema);
+export default TransactionModel;
