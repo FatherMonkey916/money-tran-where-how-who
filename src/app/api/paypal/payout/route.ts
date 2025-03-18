@@ -1,18 +1,14 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { NextResponse, type NextRequest } from "next/server"
 import Transaction, { type ITransaction } from "@/models/Transaction"
 
 export async function POST(req: NextRequest) {
   try {
-    
-    // Parse request body
     const body = await req.json()
-    const { value, userId } = body
-
-    if (!value) {
-      return NextResponse.json({ error: "Missing required field: value" }, { status: 400 })
+    const { email, amount, userId } = body
+    if (!email || !amount) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    // Create PayPal order
     const paypalUrl = process.env.PAYPAL_API_URL || "https://api-m.sandbox.paypal.com"
 
     // Get access token
@@ -32,52 +28,54 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to authenticate with PayPal" }, { status: 500 })
     }
 
-    // Create order
-    const orderResponse = await fetch(`${paypalUrl}/v2/checkout/orders`, {
+    // Create payout
+    const payoutResponse = await fetch(`${paypalUrl}/v1/payments/payouts`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${authData.access_token}`,
       },
       body: JSON.stringify({
-        intent: "CAPTURE",
-        purchase_units: [
+        sender_batch_header: {
+          sender_batch_id: `Payouts_${Date.now()}`,
+          email_subject: "You have a payout!",
+          email_message: "You have received a payout! Thanks for using our service!",
+        },
+        items: [
           {
+            recipient_type: "EMAIL",
             amount: {
-              currency_code: "USD",
-              value: value.toString(),
+              value: amount.toString(),
+              currency: "USD",
             },
-            description: "Credit purchase",
+            receiver: email,
+            note: "Thanks for your patronage!",
+            sender_item_id: `Payment_${Date.now()}`,
           },
         ],
-        application_context: {
-          return_url: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/transfer`,
-          cancel_url: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/paypal`,
-        },
       }),
     })
 
-    const orderData = await orderResponse.json()
+    const payoutData = await payoutResponse.json()
 
-    if (!orderResponse.ok) {
-      console.error("PayPal order error:", orderData)
-      return NextResponse.json({ error: "Failed to create PayPal order" }, { status: 500 })
+    if (!payoutResponse.ok) {
+      console.error("PayPal payout error:", payoutData)
+      return NextResponse.json({ error: "Failed to create PayPal payout" }, { status: 500 })
     }
 
     const newTransaction: Partial<ITransaction> = {
-      type: "onramp",
-      from: userId,
-      to: "67b2d1c93903f5962eb3f028",
-      amount: value.toString(),
-      date: new Date(),
-    }
+        type: "offramp",
+        from: "67b2d1c93903f5962eb3f028",
+        to: userId as string,
+        amount: amount.toString(),
+        date: new Date(),
+      }
 
     await Transaction.create(newTransaction)
 
-    return NextResponse.json({ id: orderData.id })
+    return NextResponse.json({ success: true, payout: payoutData })
   } catch (error) {
-    console.error("Error creating PayPal order:", error)
+    console.error("Error creating PayPal payout:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
-
