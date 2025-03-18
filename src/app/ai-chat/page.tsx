@@ -16,7 +16,7 @@ interface Message extends BaseMessage {
 }
 
 interface PaymentButton {
-  type: "Stripe" | "MTN" | "PayPal" | "MoneyGram";
+  type: "Stripe_send" | "MTN_send" | "PayPal_send" | "Stripe_receive" | "MTN_receive" | "PayPal_receive";
   label: string;
   url: string;
 }
@@ -52,19 +52,27 @@ export default function AIChat() {
     {
       id: 1,
       type: "bot",
-      content: `WELCOME!
-  
-  I'm your AI Assistant, Here to help you send money easily.
-  
-  We offer three simple methods for sending money:
-  
-  **1. MOBILE WALLET** – Send money directly to mobile wallet.
-  
-  **2. BANK TRANSFER / CARD** – Transfer funds using Ramp, Transak, or MoonPay.
-  
-  **3. CASH DEPOSIT AT AGENT** – Send money through MoneyGram or local partners.
-  
-  Which method would you like to use?`,
+      content: `Hello!
+
+Welcome to Foco, your seamless way to send and receive money.
+
+With Foco, you can easily use various payment methods like PayPal, Stripe, and MTN to send funds.
+
+Recipients can also choose anyone from multiple payment options to receive money. 
+
+The best part?
+
+....
+
+**You can do all this without any fees!**
+
+....
+
+How can I assist you today with Foco?
+
+Whether you need help sending money, or receiving money what someone sent you and then also tracking a transaction, or have questions about our services, I'm here to help.
+
+Let's get started!`,
       timestamp: new Date(),
     },
   ]);
@@ -153,15 +161,21 @@ export default function AIChat() {
           className="justify-start gap-2 hover:bg-primary hover:text-primary-foreground"
           onClick={() => window.open(button.url, "_blank")}
         >
-          {button.type === "Stripe" && (
+          {button.type === "Stripe_send" && (
             <span className="text-blue-500">💳</span>
           )}
-          {button.type === "MTN" && <span className="text-yellow-500">📱</span>}
-          {button.type === "PayPal" && (
+          {button.type === "MTN_send" && <span className="text-yellow-500">📱</span>}
+          {button.type === "PayPal_send" && (
             <span className="text-blue-300">🔵</span>
           )}
-          {button.type === "MoneyGram" && (
-            <span className="text-blue-300">🌍</span>
+          {button.type === "Stripe_receive" && (
+            <span className="text-blue-300">💳</span>
+          )}
+          {button.type === "MTN_receive" && (
+            <span className="text-yellow-500">📱</span>
+          )}
+          {button.type === "PayPal_receive" && (
+            <span className="text-blue-300">🔵</span>
           )}
           {button.label}
         </Button>

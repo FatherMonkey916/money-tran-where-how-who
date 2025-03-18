@@ -14,7 +14,7 @@ import {
   Download,
   Bot,
   LogIn,
-  UserPlus,
+  Send,
   LogOut,
   User,
 } from "lucide-react";
@@ -47,6 +47,12 @@ export function Navbar() {
       name: "Deposit", 
       href: "/on-ramp", 
       icon: <Upload className="h-4 w-4" />,
+      requiresAuth: true,
+    },
+    {
+      name: "Transfer",
+      href: "/transfer",
+      icon: <Send className="h-4 w-4" />,
       requiresAuth: true,
     },
     {

@@ -6,7 +6,7 @@ export interface IUser extends Document {
   telegramId: string;
   phonenumber: string;
   name: string;
-  walletAddress: string;
+  balance: number;
   contacts: string[];
 }
 
@@ -16,7 +16,7 @@ const UserSchema: Schema<IUser> = new Schema({
   telegramId: { type: String },
   phonenumber: { type: String },
   name: { type: String },
-  walletAddress: { type: String },
+  balance: { type: Number, default: 0 },  
   contacts: [{ type: String }]
 }, { timestamps: true });
 
