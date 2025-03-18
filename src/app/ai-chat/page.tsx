@@ -16,7 +16,7 @@ interface Message extends BaseMessage {
 }
 
 interface PaymentButton {
-  type: "Stripe" | "MTN" | "PayPal" | "MoneyGram";
+  type: "Stripe_send" | "MTN_send" | "PayPal_send" | "Stripe_receive" | "MTN_receive" | "PayPal_receive";
   label: string;
   url: string;
 }
@@ -161,15 +161,21 @@ Let's get started!`,
           className="justify-start gap-2 hover:bg-primary hover:text-primary-foreground"
           onClick={() => window.open(button.url, "_blank")}
         >
-          {button.type === "Stripe" && (
+          {button.type === "Stripe_send" && (
             <span className="text-blue-500">💳</span>
           )}
-          {button.type === "MTN" && <span className="text-yellow-500">📱</span>}
-          {button.type === "PayPal" && (
+          {button.type === "MTN_send" && <span className="text-yellow-500">📱</span>}
+          {button.type === "PayPal_send" && (
             <span className="text-blue-300">🔵</span>
           )}
-          {button.type === "MoneyGram" && (
-            <span className="text-blue-300">🌍</span>
+          {button.type === "Stripe_receive" && (
+            <span className="text-blue-300">💳</span>
+          )}
+          {button.type === "MTN_receive" && (
+            <span className="text-yellow-500">📱</span>
+          )}
+          {button.type === "PayPal_receive" && (
+            <span className="text-blue-300">🔵</span>
           )}
           {button.label}
         </Button>
