@@ -4,15 +4,14 @@ import User from "@/models/User";
 import Transaction from "@/models/Transaction";
 import { sendEmail } from "@/lib/email";
 import mongoose from "mongoose";
-import dbConnect from "@/lib/mongodb";
+import clientPromise from "@/lib/mongodb";
 
 export async function POST(req: Request) {
   const requestId = crypto.randomUUID();
   console.log(`[${requestId}] Transfer request received`);
 
   try {
-    // Connect to the database with the improved connection method
-    await dbConnect();
+    await clientPromise;
     console.log(`[${requestId}] MongoDB connection established`);
 
     // Get the authorization header
@@ -147,43 +146,18 @@ export async function POST(req: Request) {
       session.endSession();
       console.log(`[${requestId}] Transaction session ended`);
 
+      // Recalculate balances after the transaction for email notification
+      const newFromBalance = balance - amount;
+      const newToBalance = await calculateUserBalance(toUser._id.toString());
+
       // Send email notification - moved outside the transaction try/catch block
       try {
-        // Calculate receiver's new balance for the email
-        const receiverTransactions = await Transaction.find({})
-          .populate("from", "name email")
-          .populate("to", "name email")
-          .sort({ date: -1 })
-          .lean();
-
-        let receiverBalance = 0;
-        const receiverId = toUser._id.toString();
-
-        for (const tx of receiverTransactions) {
-          if (tx.type === "onramp") {
-            if (tx.to._id.toString() === receiverId) {
-              receiverBalance += tx.amount;
-            }
-          } else if (tx.type === "offramp") {
-            if (tx.from._id.toString() === receiverId) {
-              receiverBalance -= tx.amount;
-            }
-          } else if (tx.type === "transfer") {
-            if (tx.to._id.toString() === receiverId) {
-              receiverBalance += tx.amount;
-            }
-            if (tx.from._id.toString() === receiverId) {
-              receiverBalance -= tx.amount;
-            }
-          }
-        }
-
         const emailContent = `
           Hello ${toUser.name},
 
           You have received a transfer of ${amount} from ${fromUser.name}.
           
-          Your new balance is: ${receiverBalance}
+          Your new balance is: ${newToBalance}
 
           Best regards,
           FOCO.chat Team
@@ -235,4 +209,41 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
+}
+
+// Helper function to calculate a user's balance
+async function calculateUserBalance(userId: string): Promise<number> {
+  const transactions = await Transaction.find({})
+    .populate("from", "name email")
+    .populate("to", "name email")
+    .sort({ date: -1 })
+    .lean();
+
+  let balance = 0;
+
+  for (const transaction of transactions) {
+    if (transaction.type === "onramp") {
+      // User is receiving money from external source
+      if (transaction.to._id.toString() === userId) {
+        balance += transaction.amount;
+      }
+    } else if (transaction.type === "offramp") {
+      // User is sending money to external source
+      if (transaction.from._id.toString() === userId) {
+        balance -= transaction.amount;
+      }
+    } else if (transaction.type === "transfer") {
+      // Internal transfer between users
+      if (transaction.to._id.toString() === userId) {
+        // User received money
+        balance += transaction.amount;
+      }
+      if (transaction.from._id.toString() === userId) {
+        // User sent money
+        balance -= transaction.amount;
+      }
+    }
+  }
+
+  return balance;
 }
