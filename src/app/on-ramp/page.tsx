@@ -14,14 +14,18 @@ import {
 } from '@/components/ui/select';
 import { CreditCard, Building, Wallet } from 'lucide-react';
 import { Navbar } from '@/components/ui/navbar';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function OnRamp() {
-  const [amount, setAmount] = useState('');
-  const [method, setMethod] = useState('');
+  const router = useRouter();
+  // const [amount, setAmount] = useState<string>('');
+  const [method, setMethod] = useState<string>('');
+
 
   const handleDeposit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement deposit logic
+    router.push(`/${method}`);
   };
 
   return (
@@ -33,7 +37,7 @@ export default function OnRamp() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <Card className="p-6">
             <form onSubmit={handleDeposit} className="space-y-6">
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label htmlFor="amount">Amount</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
@@ -47,18 +51,18 @@ export default function OnRamp() {
                     required
                   />
                 </div>
-              </div>
+              </div> */}
 
               <div className="space-y-2">
-                <Label htmlFor="method">Payment Method</Label>
+                <Label htmlFor="method">Deposite Method</Label>
                 <Select value={method} onValueChange={setMethod}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select payment method" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="card">Credit/Debit Card</SelectItem>
-                    <SelectItem value="bank">Bank Transfer</SelectItem>
-                    <SelectItem value="wallet">Digital Wallet</SelectItem>
+                    <SelectItem value="stripe">Stripe</SelectItem>
+                    <SelectItem value="paypal">Paypal</SelectItem>
+                    <SelectItem value="mtn">MTN</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -71,27 +75,43 @@ export default function OnRamp() {
 
           <div className="space-y-6">
             <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Available Methods</h3>
+              <h3 className="text-lg font-semibold mb-4">Available Deposit Methods</h3>
               <div className="space-y-4">
-                <div className="flex items-center p-3 bg-secondary rounded-lg">
-                  <CreditCard className="h-5 w-5 mr-3" />
+                <div className="flex flex-row gap-2 items-center p-3 bg-secondary rounded-lg">
+                  <Image src="https://stripe.com/img/v3/home/twitter.png" alt="Stripe" width={30} height={30}/>
+
                   <div>
-                    <p className="font-medium">Credit/Debit Card</p>
-                    <p className="text-sm text-muted-foreground">Instant deposit</p>
+                    <p className="font-medium">Stripe</p>
+                    <p className="text-sm text-muted-foreground">Offers a highly scalable and flexible payment system with global reach, supporting over 46 countries and 135+ currencies, making it ideal for international businesses</p>
                   </div>
                 </div>
-                <div className="flex items-center p-3 bg-secondary rounded-lg">
-                  <Building className="h-5 w-5 mr-3" />
+                <div className="flex flex-row gap-2 items-center p-3 bg-secondary rounded-lg">
+                  <Image src="https://www.paypalobjects.com/webstatic/icon/pp258.png" alt="PayPal" width={30} height={30}/>
+
                   <div>
-                    <p className="font-medium">Bank Transfer</p>
-                    <p className="text-sm text-muted-foreground">1-3 business days</p>
+                    <p className="font-medium">Paypal</p>
+                    <p className="text-sm text-muted-foreground">Provides a secure and widely accepted payment method with buyer protection, allowing users to make purchases without sharing bank or card details, enhancing security and convenience</p>
                   </div>
                 </div>
-                <div className="flex items-center p-3 bg-secondary rounded-lg">
-                  <Wallet className="h-5 w-5 mr-3" />
+                <div className="flex flex-row gap-2 items-center p-3 bg-secondary rounded-lg">
+                  <svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 122.88 122.88" width="50px" height="50px">
+                    <defs>
+                      <style>
+                        {`.cls-1{fill:#ffcb05;}.cls-2{fill:#00678f;}.cls-3{fill:#fff;}.cls-4{fill:#ed1d24;}`}
+                      </style>
+                    </defs>
+                    <title>mtn-mobile</title>
+                    <polygon className="cls-1" points="0 122.88 122.88 122.88 122.88 0 0 0 0 122.88 0 122.88" />
+                    <path className="cls-2" d="M119,61.09c0,13.11-25.78,23.75-57.58,23.75S3.85,74.2,3.85,61.09s25.79-23.75,57.6-23.75S119,48,119,61.09Z" />
+                    <polygon className="cls-3" points="24.55 72.81 30.5 49.06 40.02 49.06 40.02 62.89 46.27 49.06 56.1 49.06 50.15 72.81 43.89 72.81 47.46 57.48 40.02 72.81 34.97 72.81 34.97 57.48 31.09 72.81 24.55 72.81 24.55 72.81" />
+                    <polygon className="cls-4" points="58.02 73.11 58.91 69.8 65.76 69.8 64.86 73.11 58.02 73.11 58.02 73.11" />
+                    <polygon className="cls-3" points="73.34 72.81 79.29 49.06 86.14 49.06 89.12 61.69 92.39 49.06 98.64 49.06 92.69 72.81 86.14 72.81 82.87 59.88 79.59 72.81 73.34 72.81 73.34 72.81" />
+                    <polygon className="cls-1" points="58.02 49.06 56.53 55.08 62.79 55.08 59.42 68.12 66.26 68.12 69.64 55.08 75.88 55.08 77.37 49.06 58.02 49.06 58.02 49.06" />
+                  </svg>
+
                   <div>
-                    <p className="font-medium">Digital Wallet</p>
-                    <p className="text-sm text-muted-foreground">Instant deposit</p>
+                    <p className="font-medium">MTN</p>
+                    <p className="text-sm text-muted-foreground">Facilitates financial inclusion by offering convenient and secure financial services to millions in Africa, enabling users to perform a wide range of transactions directly from their mobile phones</p>
                   </div>
                 </div>
               </div>
