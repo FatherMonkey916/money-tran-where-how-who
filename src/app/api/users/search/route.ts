@@ -1,12 +1,9 @@
 import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
 import User from "@/models/User";
-import clientPromise from "@/lib/mongodb";
 
 export async function GET(req: Request) {
   try {
-    await clientPromise;
-
     // Get the authorization header
     const authHeader = req.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {

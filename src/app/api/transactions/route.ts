@@ -4,17 +4,12 @@ import User from "@/models/User";
 import Transaction from "@/models/Transaction";
 import { sendEmail } from "@/lib/email";
 import mongoose from "mongoose";
-import dbConnect from "@/lib/mongodb";
 
 export async function POST(req: Request) {
   const requestId = crypto.randomUUID();
   console.log(`[${requestId}] Transfer request received`);
 
   try {
-    // Connect to the database with the improved connection method
-    await dbConnect();
-    console.log(`[${requestId}] MongoDB connection established`);
-
     // Get the authorization header
     const authHeader = req.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {

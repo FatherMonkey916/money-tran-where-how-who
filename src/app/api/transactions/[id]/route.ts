@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-import { ObjectId } from "mongodb";
-import dbConnect from "@/lib/mongodb";
 import Transaction from "@/models/Transaction";
 import { verifyToken } from "@/lib/auth";
 
@@ -9,8 +7,6 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    await dbConnect();
-
     // Get the authorization header
     const authHeader = req.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -50,8 +46,6 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    await dbConnect();
-
     // Get the authorization header
     const authHeader = req.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -101,8 +95,6 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    await dbConnect();
-
     // Get the authorization header
     const authHeader = req.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {

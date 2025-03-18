@@ -1,17 +1,13 @@
 import { NextResponse } from 'next/server';
-import clientPromise from '@/lib/mongodb';
+import User from '@/models/User';
 
 export async function GET() {
-  const client = await clientPromise;
-  const db = client.db();
-  const users = await db.collection('users').find({}).toArray();
+  const users = await User.find({});
   return NextResponse.json(users);
 }
 
 export async function POST(req: Request) {
   const data = await req.json();
-  const client = await clientPromise;
-  const db = client.db();
-  const result = await db.collection('users').insertOne(data);
+  const result = await User.insertOne(data);
   return NextResponse.json(result);
 }

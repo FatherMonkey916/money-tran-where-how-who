@@ -11,9 +11,6 @@ export async function POST(req: Request) {
   console.log(`[${requestId}] Transfer request received`);
 
   try {
-    await clientPromise;
-    console.log(`[${requestId}] MongoDB connection established`);
-
     // Get the authorization header
     const authHeader = req.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
