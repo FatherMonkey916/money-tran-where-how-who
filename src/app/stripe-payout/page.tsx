@@ -5,8 +5,10 @@ import type React from "react"
 import axios from "axios"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
+import { useAuth } from '@/contexts/auth-context';
 
 const StripePayout = () => {
+  const {id} = useAuth();
   const [amount, setAmount] = useState(10)
   const [accountId, setAccountId] = useState("")
   const [description, setDescription] = useState("")
@@ -49,6 +51,7 @@ const StripePayout = () => {
         amount,
         accountId,
         description: description || `Payout to ${accountId}`,
+        userId: id as string,
       })
 
       // Redirect to success page
