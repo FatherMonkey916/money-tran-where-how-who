@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { headers } from "next/headers"
 import Stripe from "stripe"
 import Transaction, { type ITransaction } from "@/models/Transaction"
+import { useAuth } from '@/contexts/auth-context';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2025-02-24.acacia",
@@ -11,6 +12,7 @@ export async function POST(req: NextRequest) {
   console.log("--request", req);
   try {
     const body = await req.text()
+    const {id} = useAuth();
     const headersList = headers()
     const sig = headersList.get("stripe-signature")
     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET
@@ -36,12 +38,11 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Missing required metadata" }, { status: 400 })
       }
 
-      const userName = metadata.username
       const amount = session.amount_total ? session.amount_total / 100 : 0
 
       const newTransaction: Partial<ITransaction> = {
         type: "onramp",
-        from: userName,
+        from: id as string,
         to: "Stripe",
         amount: amount,
         date: new Date(),

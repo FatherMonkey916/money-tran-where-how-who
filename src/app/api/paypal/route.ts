@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
           },
         ],
         application_context: {
-          return_url: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/paypal`,
+          return_url: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/transfer`,
           cancel_url: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/paypal`,
         },
       }),

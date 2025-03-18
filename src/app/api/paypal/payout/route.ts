@@ -1,12 +1,12 @@
-// src/app/api/paypal/payout/route.ts
-
 import { NextResponse, type NextRequest } from "next/server"
+import Transaction, { type ITransaction } from "@/models/Transaction"
+import { useAuth } from '@/contexts/auth-context';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { email, amount } = body
-
+    const {id} = useAuth();
     if (!email || !amount) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
@@ -64,6 +64,16 @@ export async function POST(req: NextRequest) {
       console.error("PayPal payout error:", payoutData)
       return NextResponse.json({ error: "Failed to create PayPal payout" }, { status: 500 })
     }
+
+    const newTransaction: Partial<ITransaction> = {
+        type: "offramp",
+        from: "Paypal",
+        to: id as string,
+        amount: amount.toString(),
+        date: new Date(),
+      }
+
+    await Transaction.create(newTransaction)
 
     return NextResponse.json({ success: true, payout: payoutData })
   } catch (error) {

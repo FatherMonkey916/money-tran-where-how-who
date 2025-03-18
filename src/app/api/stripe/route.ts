@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     console.log("Creating checkout session with:", {
       priceId: process.env.STRIPE_PRICE_ID,
       quantity: value,
-      successUrl: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/stripe?success=true`,
+      successUrl: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/transfer`,
       cancelUrl: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/stripe?canceled=true`,
     })
 
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
         },
       ],
       mode: "subscription",
-      success_url: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/stripe?success=true`,
+      success_url: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/transfer`,
       cancel_url: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/stripe?canceled=true`,
       metadata: {
         quantity: value,

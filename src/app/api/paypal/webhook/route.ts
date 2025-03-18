@@ -1,12 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { headers } from "next/headers"
 import Transaction, { type ITransaction } from "@/models/Transaction"
+import { useAuth } from '@/contexts/auth-context';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.text()
     const headersList = headers()
-
+    const {id} = useAuth();
     // Get PayPal webhook ID and signature
     const paypalWebhookId = process.env.PAYPAL_WEBHOOK_ID
     const transmissionId = headersList.get("paypal-transmission-id")
@@ -33,14 +34,10 @@ export async function POST(req: NextRequest) {
         ? Number.parseFloat(resource.amount.value)
         : Number.parseFloat(resource.purchase_units?.[0]?.amount?.value || "0")
 
-      // Extract customer information
-      const customerId = resource.payer?.payer_id || "unknown"
-      const customerEmail = resource.payer?.email_address || "unknown"
-
       // Record the transaction
       const newTransaction: Partial<ITransaction> = {
         type: "onramp",
-        from: customerEmail,
+        from: id as string,
         to: "PayPal",
         amount: paymentAmount,
         date: new Date(),
