@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
+import Transaction, { type ITransaction } from "@/models/Transaction"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   // Update the API version to a currently supported version
@@ -10,8 +11,7 @@ export async function POST(req: NextRequest) {
   console.log("stripe pay request received");
   try {
     const username = "Anonymous"
-    const { value } = await req.json()
-
+    const { value, userId } = await req.json()
     if (!value) {
       return NextResponse.json({ error: "Missing required field: value" }, { status: 400 })
     }
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     console.log("Creating checkout session with:", {
       priceId: process.env.STRIPE_PRICE_ID,
       quantity: value,
-      successUrl: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/stripe?success=true`,
+      successUrl: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/transfer`,
       cancelUrl: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/stripe?canceled=true`,
     })
 
@@ -33,13 +33,23 @@ export async function POST(req: NextRequest) {
         },
       ],
       mode: "subscription",
-      success_url: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/stripe?success=true`,
+      success_url: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/transfer`,
       cancel_url: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/stripe?canceled=true`,
       metadata: {
         quantity: value,
         username,
       },
     })
+
+    const newTransaction: Partial<ITransaction> = {
+      type: "onramp",
+      from: userId as string,
+      to: "Stripe",
+      amount: value,
+      date: new Date(),
+    }
+
+    await Transaction.create(newTransaction)
 
     return NextResponse.json({ id: session.id })
   } catch (error) {
