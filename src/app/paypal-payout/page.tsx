@@ -1,19 +1,21 @@
 "use client"
 import { useState } from "react"
 import axios from "axios"
+import { useAuth } from '@/contexts/auth-context';
 
 const PayPalPayout = () => {
   const [email, setEmail] = useState("")
   const [amount, setAmount] = useState("")
   const [status, setStatus] = useState("")
-
+  const {id} = useAuth();
   const handlePayout = async (e: React.FormEvent) => {
     e.preventDefault()
     setStatus("Processing...")
 
     try {
-      const response = await axios.post("/api/paypal/payout", { email, amount: parseFloat(amount) })
+      await axios.post("/api/paypal/payout", { email, amount: parseFloat(amount), userId: id})
       setStatus("Payout successful!")
+      window.location.href = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/dashboard`
     } catch (error) {
       console.error("Payout error:", error)
       setStatus("Payout failed. Please try again.")
@@ -35,7 +37,7 @@ const PayPalPayout = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+            className="mt-1 p-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
           />
         </div>
 
@@ -51,7 +53,7 @@ const PayPalPayout = () => {
             required
             min="0.01"
             step="0.01"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+            className="mt-1 p-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
           />
         </div>
 

@@ -6,6 +6,7 @@ import { loadStripe } from "@stripe/stripe-js"
 import { useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
+import { useAuth } from '@/contexts/auth-context';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string)
 
@@ -14,7 +15,7 @@ const StripePay = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const searchParams = useSearchParams()
-
+  const {id} = useAuth();
   // Check for success or canceled status from URL params
   const isSuccess = searchParams.get("success") === "true"
   const isCanceled = searchParams.get("canceled") === "true"
@@ -34,7 +35,7 @@ const StripePay = () => {
         throw new Error("Stripe failed to initialize")
       }
 
-      const res = await axios.post("/api/stripe", { value })
+      const res = await axios.post("/api/stripe", { value, userId: id })
       const session = res.data
 
       const result = await stripe.redirectToCheckout({

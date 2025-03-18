@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
+import Transaction, { type ITransaction } from "@/models/Transaction"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   // Update the API version to a currently supported version
@@ -10,8 +11,7 @@ export async function POST(req: NextRequest) {
   console.log("stripe pay request received");
   try {
     const username = "Anonymous"
-    const { value } = await req.json()
-
+    const { value, userId } = await req.json()
     if (!value) {
       return NextResponse.json({ error: "Missing required field: value" }, { status: 400 })
     }
@@ -40,6 +40,16 @@ export async function POST(req: NextRequest) {
         username,
       },
     })
+
+    const newTransaction: Partial<ITransaction> = {
+      type: "onramp",
+      from: userId as string,
+      to: "Stripe",
+      amount: value,
+      date: new Date(),
+    }
+
+    await Transaction.create(newTransaction)
 
     return NextResponse.json({ id: session.id })
   } catch (error) {

@@ -1,11 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server"
+import Transaction, { type ITransaction } from "@/models/Transaction"
 
 export async function POST(req: NextRequest) {
   try {
     
     // Parse request body
     const body = await req.json()
-    const { value } = body
+    const { value, userId } = body
 
     if (!value) {
       return NextResponse.json({ error: "Missing required field: value" }, { status: 400 })
@@ -62,6 +63,16 @@ export async function POST(req: NextRequest) {
       console.error("PayPal order error:", orderData)
       return NextResponse.json({ error: "Failed to create PayPal order" }, { status: 500 })
     }
+
+    const newTransaction: Partial<ITransaction> = {
+      type: "onramp",
+      from: userId,
+      to: "PayPal",
+      amount: value.toString(),
+      date: new Date(),
+    }
+
+    await Transaction.create(newTransaction)
 
     return NextResponse.json({ id: orderData.id })
   } catch (error) {

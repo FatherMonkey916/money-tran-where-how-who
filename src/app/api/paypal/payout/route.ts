@@ -1,12 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server"
 import Transaction, { type ITransaction } from "@/models/Transaction"
-import { useAuth } from '@/contexts/auth-context';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { email, amount } = body
-    const {id} = useAuth();
+    const { email, amount, userId } = body
     if (!email || !amount) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
@@ -68,7 +66,7 @@ export async function POST(req: NextRequest) {
     const newTransaction: Partial<ITransaction> = {
         type: "offramp",
         from: "Paypal",
-        to: id as string,
+        to: userId,
         amount: amount.toString(),
         date: new Date(),
       }

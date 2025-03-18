@@ -6,8 +6,10 @@ import { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js"
+import { useAuth } from '@/contexts/auth-context';
 
 const PayPalPay = () => {
+  const {id} = useAuth();
   const [value, setValue] = useState(1)
   const [clientId, setClientId] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
@@ -42,6 +44,7 @@ const PayPalPay = () => {
     console.log("PayPal payment successful:", details)
     setSuccess(true)
     setError(null)
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/transfer`
   }
 
   const handlePaypalError = (error: any) => {
@@ -101,7 +104,7 @@ const PayPalPay = () => {
                     style={{ layout: "vertical", color: "blue", shape: "rect", label: "pay" }}
                     createOrder={async () => {
                       try {
-                        const response = await axios.post("/api/paypal", { value })
+                        const response = await axios.post("/api/paypal", { value, userId: id })
                         return response.data.id
                       } catch (error) {
                         console.error("Error creating PayPal order:", error)
