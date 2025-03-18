@@ -61,12 +61,12 @@ export function Navbar() {
       icon: <Download className="h-4 w-4" />,
       requiresAuth: true,
     },
-    {
-      name: "AI Assistant",
-      href: "/ai-chat",
-      icon: <Bot className="h-4 w-4" />,
-      requiresAuth: true,
-    },
+    // {
+    //   name: "AI Assistant",
+    //   href: "/ai-chat",
+    //   icon: <Bot className="h-4 w-4" />,
+    //   requiresAuth: true,
+    // },
   ];
 
   const filteredNavigation = navigation.filter(item => 
