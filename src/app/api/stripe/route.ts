@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     const newTransaction: Partial<ITransaction> = {
       type: "onramp",
       from: userId as string,
-      to: "Stripe",
+      to: "67b2d1c93903f5962eb3f028",
       amount: value,
       date: new Date(),
     }
