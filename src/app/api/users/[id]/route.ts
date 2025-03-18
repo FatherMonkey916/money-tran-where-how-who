@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
-import clientPromise from '@/lib/mongodb';
+import User from '@/models/User';
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const { id } = params;
-  const client = await clientPromise;
-  const db = client.db();
-  const user = await db.collection('users').findOne({ _id: new ObjectId(id) });
+  const user = await User.findOne({ _id: new ObjectId(id) });
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
   return NextResponse.json(user);
 }
@@ -14,9 +12,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   const { id } = params;
   const data = await req.json();
-  const client = await clientPromise;
-  const db = client.db();
-  const result = await db.collection('users').updateOne(
+  const result = await User.updateOne(
     { _id: new ObjectId(id) },
     { $set: data }
   );
@@ -25,8 +21,6 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   const { id } = params;
-  const client = await clientPromise;
-  const db = client.db();
-  const result = await db.collection('users').deleteOne({ _id: new ObjectId(id) });
+  const result = await User.deleteOne({ _id: new ObjectId(id) });
   return NextResponse.json(result);
 }

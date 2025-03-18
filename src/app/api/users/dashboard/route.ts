@@ -1,11 +1,8 @@
-import clientPromise from "@/lib/mongodb"; // Ensure this is correctly set up
 import TransactionModel from "@/models/Transaction";
 import UserModel from "@/models/User"; // Assuming you have a User model
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  await clientPromise; // Ensure the database is connected
-
   try {
     const body = await req.json();
     const { userId } = body;
