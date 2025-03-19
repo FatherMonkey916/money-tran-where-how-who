@@ -1,37 +1,35 @@
-import nodemailer from "nodemailer";
+import nodemailer from 'nodemailer';
 
-interface EmailParams {
+// Define the mail options interface
+interface MailOptions {
+  from: string;
   to: string;
   subject: string;
-  text: string;
-  html?: string;
+  html: string;
 }
 
-// Create reusable transporter
+// Create a transporter for sending emails
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp.gmail.com",
-  port: parseInt(process.env.SMTP_PORT || "587"),
-  secure: process.env.SMTP_SECURE === "true",
+  service: "Gmail",
+  host: "smtp.mailersend.com",
+  port: 587,
+  secure: false,
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
+    user: "focochat5@gmail.com",
+    pass: "Redmond$222", // Consider using environment variables for sensitive data
   },
 });
 
-export async function sendEmail({ to, subject, text, html }: EmailParams) {
+// Function to send mail
+async function sendMailer(mailOptions: MailOptions): Promise<any> {
   try {
-    const info = await transporter.sendMail({
-      from: process.env.SMTP_FROM || '"FOCO.chat" <noreply@foco.chat>',
-      to,
-      subject,
-      text,
-      html: html || text.replace(/\n/g, "<br>"),
-    });
-
-    console.log("Email sent:", info.messageId);
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully:', info);
     return info;
   } catch (error) {
-    console.error("Error sending email:", error);
+    console.error('Error in nodemailer:', error);
     throw error;
   }
 }
+
+export default sendMailer;
