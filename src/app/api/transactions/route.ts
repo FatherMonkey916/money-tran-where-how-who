@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
 import User from "@/models/User";
 import Transaction from "@/models/Transaction";
-import { sendEmail } from "@/lib/email";
+import sendMailer from "@/lib/email";
 import mongoose from "mongoose";
 
 export async function POST(req: Request) {
@@ -173,22 +173,69 @@ export async function POST(req: Request) {
           }
         }
 
-        const emailContent = `
-          Hello ${toUser.name},
-
-          You have received a transfer of ${amount} from ${fromUser.name}.
-          
-          Your new balance is: ${receiverBalance}
-
-          Best regards,
-          FOCO.chat Team
-        `;
-
-        await sendEmail({
+        const emailContent = {
+          from: "focochat5@gmail.com",
           to: toUser.email,
-          subject: "Money Received on FOCO.chat",
-          text: emailContent,
-        });
+          subject: `You have received some money from ${fromUser.name}`,
+          html: `<!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8" />
+              <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+              <title>Hello ${toUser.name}</title>
+              <style>
+                  body {
+                      font-family: Arial, sans-serif;
+                      margin: 0;
+                      padding: 0;
+                      background-color: #f4f4f4;
+                  }
+                  .container {
+                      max-width: 600px;
+                      margin: auto;
+                      background-color: #fff;
+                      padding: 20px;
+                      border-radius: 10px;
+                      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                  }
+                  .header {
+                      text-align: center;
+                      margin-bottom: 20px;
+                  }
+                  .balance-info {
+                      background-color: #0095FF;
+                      color: white;
+                      padding: 10px;
+                      border-radius: 5px;
+                      text-align: center;
+                      font-size: 20px;
+                      margin-bottom: 20px;
+                  }
+                  .footer {
+                      text-align: center;
+                      margin-top: 20px;
+                  }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <div class="header">
+                      <h1>You have received a transfer of ${amount} from ${fromUser.name}</h1>
+                  </div>
+                  <div class="balance-info">
+                      Your new balance is: ${receiverBalance}
+                  </div>
+                  <div class="footer">
+                      Best regards,<br>
+                      FOCO.chat Team
+                  </div>
+              </div>
+          </body>
+          </html>
+          `,
+        };
+  
+        await sendMailer(emailContent);
         console.log(
           `[${requestId}] Notification email sent to ${toUser.email}`
         );
