@@ -7,6 +7,7 @@ import { useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from '@/contexts/auth-context';
+import { useToast } from "@/hooks/use-toast";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string)
 
@@ -16,6 +17,8 @@ const StripePay = () => {
   const [error, setError] = useState<string | null>(null)
   const searchParams = useSearchParams()
   const {id} = useAuth();
+  const { toast } = useToast();
+
   // Check for success or canceled status from URL params
   const isSuccess = searchParams.get("success") === "true"
   const isCanceled = searchParams.get("canceled") === "true"
@@ -44,9 +47,19 @@ const StripePay = () => {
 
       if (result.error) {
         throw result.error
+      } else {
+        toast({
+          title: "Success",
+          description: "Deposit has been successfully completed",
+        });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("error", error)
+      toast({
+        title: "Deposit failed",
+        description: error.response?.data?.error || "An unexpected error occurred",
+        variant: "destructive",
+      });
       setError("Payment failed. Please try again.")
     } finally {
       setIsLoading(false)

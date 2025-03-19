@@ -7,6 +7,8 @@ import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js"
 import { useAuth } from '@/contexts/auth-context';
+import { useToast } from "@/hooks/use-toast";
+
 
 const PayPalPay = () => {
   const {id} = useAuth();
@@ -15,7 +17,7 @@ const PayPalPay = () => {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const searchParams = useSearchParams()
-
+  const { toast } = useToast();
   // Check for success or canceled status from URL params
   const isSuccess = searchParams.get("success") === "true"
   const isCanceled = searchParams.get("canceled") === "true"
@@ -42,6 +44,10 @@ const PayPalPay = () => {
 
   const handlePaypalSuccess = (details: any) => {
     console.log("PayPal payment successful:", details)
+    toast({
+      title: "Success",
+      description: "Deposit has been successfully completed",
+    });
     setSuccess(true)
     setError(null)
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/transfer`
@@ -49,6 +55,11 @@ const PayPalPay = () => {
 
   const handlePaypalError = (error: any) => {
     console.error("PayPal payment error:", error)
+    toast({
+      title: "Deposit failed",
+      description: error.response?.data?.error || "An unexpected error occurred",
+      variant: "destructive",
+    });
     setError("PayPal payment failed. Please try again.")
   }
 

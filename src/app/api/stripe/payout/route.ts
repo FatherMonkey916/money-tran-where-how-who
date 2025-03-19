@@ -25,6 +25,39 @@ export async function POST(req: NextRequest) {
     })
 
     try {
+
+      const transactions = await Transaction.find({})
+        .populate("from", "name email")
+        .populate("to", "name email")
+        .sort({ date: -1 })
+        .lean();
+
+      let balance = 0;
+
+      for (const transaction of transactions) {
+        if (transaction.type === "onramp") {
+          if (transaction.to._id.toString() === userId) {
+            balance += transaction.amount;
+          }
+        } else if (transaction.type === "offramp") {
+          if (transaction.from._id.toString() === userId) {
+            balance -= transaction.amount;
+          }
+        } else if (transaction.type === "transfer") {
+          if (transaction.to._id.toString() === userId) {
+            balance += transaction.amount;
+          }
+          if (transaction.from._id.toString() === userId) {
+            balance -= transaction.amount;
+          }
+        }
+      }
+
+      if (balance < amount) {
+        console.warn(`Insufficient balance: available=${balance}, requested=${amount}`);
+        return NextResponse.json({ error: "Insufficient balance" }, { status: 400 });
+      }
+
       // First, create a recipient if they don't exist
       // Note: In a production app, you would check if the recipient already exists
       const recipient = await stripe.transfers.create({

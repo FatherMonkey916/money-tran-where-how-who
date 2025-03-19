@@ -2,12 +2,14 @@
 import { useState } from "react"
 import axios from "axios"
 import { useAuth } from '@/contexts/auth-context';
+import { useToast } from "@/hooks/use-toast";
 
 const PayPalPayout = () => {
   const [email, setEmail] = useState("")
   const [amount, setAmount] = useState("")
   const [status, setStatus] = useState("")
   const {id} = useAuth();
+  const { toast } = useToast();
   const handlePayout = async (e: React.FormEvent) => {
     e.preventDefault()
     setStatus("Processing...")
@@ -15,10 +17,19 @@ const PayPalPayout = () => {
     try {
       await axios.post("/api/paypal/payout", { email, amount: parseFloat(amount), userId: id})
       setStatus("Payout successful!")
+      toast({
+        title: "Success",
+        description: "Payout completed successfully",
+      });
       window.location.href = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/dashboard`
-    } catch (error) {
+    } catch (error: any) {
       console.error("Payout error:", error)
       setStatus("Payout failed. Please try again.")
+      toast({
+        title: "Transfer failed",
+        description: error.response?.data?.error || "An unexpected error occurred",
+        variant: "destructive",
+      });
     }
   }
 

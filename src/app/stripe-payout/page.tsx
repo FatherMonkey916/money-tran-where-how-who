@@ -6,6 +6,7 @@ import axios from "axios"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { useAuth } from '@/contexts/auth-context';
+import { useToast } from "@/hooks/use-toast";
 
 const StripePayout = () => {
   const {id} = useAuth();
@@ -15,6 +16,7 @@ const StripePayout = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const searchParams = useSearchParams()
+  const { toast } = useToast();
 
   // Check for success or error status from URL params
   const isSuccess = searchParams.get("success") === "true"
@@ -54,12 +56,22 @@ const StripePayout = () => {
         userId: id as string,
       })
 
+      toast({
+        title: "Success",
+        description: "Payout completed successfully",
+      });
+
       // Redirect to success page
       window.location.href = `/stripe-payout?success=true`
-    } catch (error) {
+    } catch (error: any) {
       console.error("error", error)
       setError(error instanceof Error ? error.message : "Payout failed. Please try again.")
       setIsLoading(false)
+      toast({
+        title: "Payout failed",
+        description: error.response?.data?.error || "An unexpected error occurred",
+        variant: "destructive",
+      });
     }
   }
 
