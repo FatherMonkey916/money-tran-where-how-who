@@ -5,6 +5,43 @@ import Transaction from "@/models/Transaction";
 import sendMailer from "@/lib/email";
 
 
+// Helper function to calculate a user's balance
+async function calculateUserBalance(userId: string): Promise<number> {
+  const transactions = await Transaction.find({})
+    .populate("from", "name email")
+    .populate("to", "name email")
+    .sort({ date: -1 })
+    .lean();
+
+  let balance = 0;
+
+  for (const transaction of transactions) {
+    if (transaction.type === "onramp") {
+      // User is receiving money from external source
+      if (transaction.to._id.toString() === userId) {
+        balance += transaction.amount;
+      }
+    } else if (transaction.type === "offramp") {
+      // User is sending money to external source
+      if (transaction.from._id.toString() === userId) {
+        balance -= transaction.amount;
+      }
+    } else if (transaction.type === "transfer") {
+      // Internal transfer between users
+      if (transaction.to._id.toString() === userId) {
+        // User received money
+        balance += transaction.amount;
+      }
+      if (transaction.from._id.toString() === userId) {
+        // User sent money
+        balance -= transaction.amount;
+      }
+    }
+  }
+
+  return balance;
+}
+
 export async function POST(req: Request) {
   const requestId = crypto.randomUUID();
   console.log(`[${requestId}] Transfer request received`);
@@ -182,39 +219,3 @@ export async function POST(req: Request) {
   }
 }
 
-// Helper function to calculate a user's balance
-async function calculateUserBalance(userId: string): Promise<number> {
-  const transactions = await Transaction.find({})
-    .populate("from", "name email")
-    .populate("to", "name email")
-    .sort({ date: -1 })
-    .lean();
-
-  let balance = 0;
-
-  for (const transaction of transactions) {
-    if (transaction.type === "onramp") {
-      // User is receiving money from external source
-      if (transaction.to._id.toString() === userId) {
-        balance += transaction.amount;
-      }
-    } else if (transaction.type === "offramp") {
-      // User is sending money to external source
-      if (transaction.from._id.toString() === userId) {
-        balance -= transaction.amount;
-      }
-    } else if (transaction.type === "transfer") {
-      // Internal transfer between users
-      if (transaction.to._id.toString() === userId) {
-        // User received money
-        balance += transaction.amount;
-      }
-      if (transaction.from._id.toString() === userId) {
-        // User sent money
-        balance -= transaction.amount;
-      }
-    }
-  }
-
-  return balance;
-}
