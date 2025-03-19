@@ -94,7 +94,8 @@ export default function OnRamp() {
                   </div>
                 </div>
                 <div className="flex flex-row gap-2 items-center p-3 bg-secondary rounded-lg">
-                  <svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 122.88 122.88" width="50px" height="50px">
+                  <div className="flex flex-row items-center w-[30px] h-[30px]">
+                  <svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 122.88 122.88" width={40} height={40}>
                     <defs>
                       <style>
                         {`.cls-1{fill:#ffcb05;}.cls-2{fill:#00678f;}.cls-3{fill:#fff;}.cls-4{fill:#ed1d24;}`}
@@ -108,7 +109,7 @@ export default function OnRamp() {
                     <polygon className="cls-3" points="73.34 72.81 79.29 49.06 86.14 49.06 89.12 61.69 92.39 49.06 98.64 49.06 92.69 72.81 86.14 72.81 82.87 59.88 79.59 72.81 73.34 72.81 73.34 72.81" />
                     <polygon className="cls-1" points="58.02 49.06 56.53 55.08 62.79 55.08 59.42 68.12 66.26 68.12 69.64 55.08 75.88 55.08 77.37 49.06 58.02 49.06 58.02 49.06" />
                   </svg>
-
+                  </div>
                   <div>
                     <p className="font-medium">MTN</p>
                     <p className="text-sm text-muted-foreground">Facilitates financial inclusion by offering convenient and secure financial services to millions in Africa, enabling users to perform a wide range of transactions directly from their mobile phones</p>
