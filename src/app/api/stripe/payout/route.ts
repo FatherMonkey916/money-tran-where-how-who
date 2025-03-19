@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
 import Transaction, { type ITransaction } from "@/models/Transaction"
-import { useAuth } from '@/contexts/auth-context';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2025-02-24.acacia",
@@ -10,8 +9,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 export async function POST(req: NextRequest) {
   console.log("stripe payout request received")
   try {
-    const { amount, accountId, description } = await req.json()
-    const {id} = useAuth();
+    const { amount, accountId, description, userId } = await req.json()
     if (!amount || !accountId) {
       return NextResponse.json({ error: "Missing required fields: amount and accountId" }, { status: 400 })
     }
@@ -39,8 +37,8 @@ export async function POST(req: NextRequest) {
       // Record the transaction in your database
       const newTransaction: Partial<ITransaction> = {
         type: "offramp",
-        from: "Stripe",
-        to: id as string,
+        from: userId as string,
+        to: "67d9a9a9f12bf81e3abd5924",
         amount: amount,
         date: new Date(),
       }
