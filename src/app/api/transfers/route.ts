@@ -6,12 +6,34 @@ import { sendEmail } from "@/lib/email";
 import mongoose from "mongoose";
 import clientPromise from "@/lib/mongodb";
 
+async function calculateUserBalance(userId: string): Promise<number> {
+  const transactions = await Transaction.find({ $or: [{ from: userId }, { to: userId }] }).lean();
+  let balance = 0;
+
+  for (const transaction of transactions) {
+    if (transaction.type === "onramp" && transaction.to.toString() === userId) {
+      balance += transaction.amount;
+    } else if (transaction.type === "offramp" && transaction.from.toString() === userId) {
+      balance -= transaction.amount;
+    } else if (transaction.type === "transfer") {
+      if (transaction.to.toString() === userId) {
+        balance += transaction.amount;
+      }
+      if (transaction.from.toString() === userId) {
+        balance -= transaction.amount;
+      }
+    }
+  }
+
+  return balance;
+}
+
 export async function POST(req: Request) {
   const requestId = crypto.randomUUID();
   console.log(`[${requestId}] Transfer request received`);
 
   try {
-    // Get the authorization header
+    // Authentication code remains the same
     const authHeader = req.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       console.warn(
@@ -20,7 +42,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Verify the token
     const token = authHeader.split(" ")[1];
     const payload = await verifyToken(token);
     if (!payload) {
@@ -45,160 +66,116 @@ export async function POST(req: Request) {
       );
     }
 
-    // Start a session for the transaction
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    console.log(`[${requestId}] Transaction session started`);
+    // Get both users without using a session
+    const fromUser = await User.findById(payload.sub);
+    const toUser = await User.findById(toUserId);
 
-    try {
-      // Get both users
-      const fromUser = await User.findById(payload.sub).session(session);
-      const toUser = await User.findById(toUserId).session(session);
-
-      if (!fromUser || !toUser) {
-        console.warn(
-          `[${requestId}] User not found: fromUser=${!!fromUser}, toUser=${!!toUser}`
-        );
-        await session.abortTransaction();
-        console.log(`[${requestId}] Transaction aborted: User not found`);
-        return NextResponse.json({ error: "User not found" }, { status: 404 });
-      }
-
-      console.log(
-        `[${requestId}] Users found: from=${fromUser.name}, to=${toUser.name}`
+    if (!fromUser || !toUser) {
+      console.warn(
+        `[${requestId}] User not found: fromUser=${!!fromUser}, toUser=${!!toUser}`
       );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
 
-      // Calculate sender's balance from transaction history
-      const userId = fromUser._id.toString();
-      const transactions = await Transaction.find({})
-        .populate("from", "name email")
-        .populate("to", "name email")
-        .sort({ date: -1 })
-        .lean();
+    console.log(
+      `[${requestId}] Users found: from=${fromUser.name}, to=${toUser.name}`
+    );
 
-      console.log(
-        `[${requestId}] Retrieved ${transactions.length} transactions for balance calculation`
-      );
+    // Calculate sender's balance from transaction history
+    const userId = fromUser._id.toString();
+    const transactions = await Transaction.find({})
+      .populate("from", "name email")
+      .populate("to", "name email")
+      .sort({ date: -1 })
+      .lean();
 
-      let balance = 0;
+    console.log(
+      `[${requestId}] Retrieved ${transactions.length} transactions for balance calculation`
+    );
 
-      for (const transaction of transactions) {
-        if (transaction.type === "onramp") {
-          // User is receiving money from external source
-          if (transaction.to._id.toString() === userId) {
-            balance += transaction.amount;
-          }
-        } else if (transaction.type === "offramp") {
-          // User is sending money to external source
-          if (transaction.from._id.toString() === userId) {
-            balance -= transaction.amount;
-          }
-        } else if (transaction.type === "transfer") {
-          // Internal transfer between users
-          if (transaction.to._id.toString() === userId) {
-            // User received money
-            balance += transaction.amount;
-          }
-          if (transaction.from._id.toString() === userId) {
-            // User sent money
-            balance -= transaction.amount;
-          }
+    let balance = 0;
+
+    for (const transaction of transactions) {
+      if (transaction.type === "onramp") {
+        if (transaction.to._id.toString() === userId) {
+          balance += transaction.amount;
+        }
+      } else if (transaction.type === "offramp") {
+        if (transaction.from._id.toString() === userId) {
+          balance -= transaction.amount;
+        }
+      } else if (transaction.type === "transfer") {
+        if (transaction.to._id.toString() === userId) {
+          balance += transaction.amount;
+        }
+        if (transaction.from._id.toString() === userId) {
+          balance -= transaction.amount;
         }
       }
-
-      console.log(`[${requestId}] Calculated balance for sender: ${balance}`);
-
-      // Check if sender has enough balance
-      if (balance < amount) {
-        console.warn(
-          `[${requestId}] Insufficient balance: available=${balance}, requested=${amount}`
-        );
-        await session.abortTransaction();
-        console.log(`[${requestId}] Transaction aborted: Insufficient balance`);
-        return NextResponse.json(
-          { error: "Insufficient balance" },
-          { status: 400 }
-        );
-      }
-
-      // Create transaction record - we don't update user.balance anymore
-      const transaction = new Transaction({
-        type: "transfer",
-        from: fromUser._id,
-        to: toUser._id,
-        amount: amount,
-        date: new Date(),
-      });
-
-      await transaction.save({ session });
-      console.log(
-        `[${requestId}] Transaction record created: ${transaction._id}`
-      );
-
-      // Commit the transaction
-      await session.commitTransaction();
-      console.log(`[${requestId}] Database transaction committed successfully`);
-
-      // End the session after committing
-      session.endSession();
-      console.log(`[${requestId}] Transaction session ended`);
-
-      // Recalculate balances after the transaction for email notification
-      const newFromBalance = balance - amount;
-      const newToBalance = await calculateUserBalance(toUser._id.toString());
-
-      // Send email notification - moved outside the transaction try/catch block
-      try {
-        const emailContent = `
-          Hello ${toUser.name},
-
-          You have received a transfer of ${amount} from ${fromUser.name}.
-          
-          Your new balance is: ${newToBalance}
-
-          Best regards,
-          FOCO.chat Team
-        `;
-
-        await sendEmail({
-          to: toUser.email,
-          subject: "Money Received on FOCO.chat",
-          text: emailContent,
-        });
-        console.log(
-          `[${requestId}] Notification email sent to ${toUser.email}`
-        );
-      } catch (emailError) {
-        // Just log the email error but don't fail the whole transaction
-        console.error(
-          `[${requestId}] Error sending email notification:`,
-          emailError
-        );
-        // The transaction is already committed, so we continue
-      }
-
-      console.log(`[${requestId}] Transfer completed successfully`);
-      return NextResponse.json({
-        message: "Transfer successful",
-        transaction: transaction,
-      });
-    } catch (error) {
-      // Only abort if the session is still active
-      if (session.inTransaction()) {
-        await session.abortTransaction();
-        console.error(
-          `[${requestId}] Transaction aborted due to error in processing`,
-          error
-        );
-      }
-      throw error;
-    } finally {
-      // Only end the session if it hasn't been ended already
-      if (session) {
-        session.endSession();
-        console.log(`[${requestId}] Transaction session ended`);
-      }
     }
+
+    console.log(`[${requestId}] Calculated balance for sender: ${balance}`);
+
+    // Check if sender has enough balance
+    if (balance < amount) {
+      console.warn(
+        `[${requestId}] Insufficient balance: available=${balance}, requested=${amount}`
+      );
+      return NextResponse.json(
+        { error: "Insufficient balance" },
+        { status: 400 }
+      );
+    }
+
+    // Create transaction record without using a session
+    const transaction = new Transaction({
+      type: "transfer",
+      from: fromUser._id,
+      to: toUser._id,
+      amount: amount,
+      date: new Date(),
+    });
+
+    await transaction.save();
+    console.log(
+      `[${requestId}] Transaction record created: ${transaction._id}`
+    );
+
+    // Recalculate balances after the transaction for email notification
+    const newFromBalance = balance - amount;
+    const newToBalance = await calculateUserBalance(toUser._id.toString());
+
+    // Send email notification
+    try {
+      const emailContent = `
+        Hello ${toUser.name},
+
+        You have received a transfer of ${amount} from ${fromUser.name}.
+        
+        Your new balance is: ${newToBalance}
+
+        Best regards,
+        FOCO.chat Team
+      `;
+
+      await sendEmail({
+        to: toUser.email,
+        subject: "Money Received on FOCO.chat",
+        text: emailContent,
+      });
+      console.log(`[${requestId}] Notification email sent to ${toUser.email}`);
+    } catch (emailError) {
+      console.error(
+        `[${requestId}] Error sending email notification:`,
+        emailError
+      );
+    }
+
+    console.log(`[${requestId}] Transfer completed successfully`);
+    return NextResponse.json({
+      message: "Transfer successful",
+      transaction: transaction,
+    });
   } catch (error) {
     console.error(`[${requestId}] Transfer error:`, error);
     return NextResponse.json(
@@ -206,41 +183,4 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-}
-
-// Helper function to calculate a user's balance
-async function calculateUserBalance(userId: string): Promise<number> {
-  const transactions = await Transaction.find({})
-    .populate("from", "name email")
-    .populate("to", "name email")
-    .sort({ date: -1 })
-    .lean();
-
-  let balance = 0;
-
-  for (const transaction of transactions) {
-    if (transaction.type === "onramp") {
-      // User is receiving money from external source
-      if (transaction.to._id.toString() === userId) {
-        balance += transaction.amount;
-      }
-    } else if (transaction.type === "offramp") {
-      // User is sending money to external source
-      if (transaction.from._id.toString() === userId) {
-        balance -= transaction.amount;
-      }
-    } else if (transaction.type === "transfer") {
-      // Internal transfer between users
-      if (transaction.to._id.toString() === userId) {
-        // User received money
-        balance += transaction.amount;
-      }
-      if (transaction.from._id.toString() === userId) {
-        // User sent money
-        balance -= transaction.amount;
-      }
-    }
-  }
-
-  return balance;
 }
