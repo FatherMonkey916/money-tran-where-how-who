@@ -1,7 +1,3 @@
-To add your money transfer platform to GitHub, you'll need to create a detailed description that highlights its features, technologies used, and setup instructions. Here's a template you can use:
-
----
-
 # Money Transfer Platform
 
 ## Overview
